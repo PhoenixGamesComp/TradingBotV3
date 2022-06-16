@@ -1,8 +1,26 @@
 import pandas as pd
 import datetime as dt
 from binance.client import Client
+from logger import Logger
+import sys
 
-client = Client()
+
+logger = Logger()
+
+try:
+
+    logger.info("Connecting to Binance API...", end=" ")
+    client = Client()
+    logger.print("OK")
+
+except Exception as e:
+
+    logger.print("ERROR")
+    logger.error("Couldn't connect to Binance API")
+    logger.print("Exception:")
+    logger.print(e)
+    logger.error("Terminating bot...")
+    sys.exit(1)
 
 
 def get_symbols():

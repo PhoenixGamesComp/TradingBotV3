@@ -1,6 +1,7 @@
 import pandas as pd
 from binance_api import get_historical_ohlc_data
 from logger import Logger
+import sys
 
 
 class Simulator:
@@ -18,11 +19,23 @@ class Simulator:
             self.logger.info(
                 "Fetching historical data for {}...".format(config["symbol"]), end=" ")
 
-        self.historical_data = get_historical_ohlc_data(config["symbol"],
-                                                        config["past_days"] +
-                                                        config["simulation_days"],
-                                                        config["time_interval"]
-                                                        )
+        try:
+
+            self.historical_data = get_historical_ohlc_data(config["symbol"],
+                                                            config["past_days"] +
+                                                            config["simulation_days"],
+                                                            config["time_interval"]
+                                                            )
+        except Exception as e:
+
+            if debug:
+
+                self.logger.print("ERROR")
+                self.logger.error(
+                    "Fetching historical data failed with exception: \n".format(e))
+                self.logger.error("Terminating bot...")
+                sys.exit(1)
+
         if debug:
 
             self.logger.print("OK")
@@ -53,10 +66,23 @@ class Simulator:
             self.logger.info(
                 "Fetching simulation data for {}...".format(config["symbol"]), end=" ")
 
-        self.simulation_data = get_historical_ohlc_data(config["symbol"],
-                                                        config["simulation_days"],
-                                                        str(config["refresh_rate"]) + "m"
-                                                        )
+        try:
+
+            self.simulation_data = get_historical_ohlc_data(config["symbol"],
+                                                            config["simulation_days"],
+                                                            str(config["refresh_rate"]) + "m"
+                                                            )
+
+        except Exception as e:
+
+            if debug:
+
+                self.logger.print("ERROR")
+                self.logger.error(
+                    "Fetching simulation data failed with exception: \n".format(e))
+                self.logger.error("Terminating bot...")
+                sys.exit(1)
+
         if debug:
 
             self.logger.print("OK")

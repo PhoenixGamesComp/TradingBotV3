@@ -19,7 +19,11 @@ def create_plot(data, ap=[]):
 
     xmin = data[len(data)-10:].index[0]
     xmax = data[len(data)-10:].index[-1]
-    ax[0].set_xlim(xmin, xmax + datetime.timedelta(days=1))
+
+    xmax_offset = (data[len(data) - 10:].index[-1] -
+                   data[len(data)-10:].index[-3])
+
+    ax[0].set_xlim(xmin, xmax + xmax_offset)
 
     ymin = min(data.loc[xmin]["low"], data.loc[xmax]["low"])
     ymax = max(data.loc[xmin]["high"], data.loc[xmax]["high"])

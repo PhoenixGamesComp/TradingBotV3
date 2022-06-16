@@ -27,6 +27,10 @@ class Logger:
 
         print(message, end=end)
 
+    def bold(self, message, end="\n"):
+
+        print(bcolors.BOLD + message + bcolors.ENDC, end=end)
+
     def info(self, message, end="\n"):
 
         print(self.__get_identifier(
