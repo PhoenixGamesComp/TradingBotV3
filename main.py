@@ -1,6 +1,12 @@
 import argparse
+import pandas as pd
+from chart import create_plot
+from simp_zoom import zoom_factory
+from simulator import Simulator
+import mplfinance as mpf
 
-if __name__ == "__main__":
+
+def arg_handler():
 
     parser = argparse.ArgumentParser(description="Trading Bot V3",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -17,8 +23,28 @@ if __name__ == "__main__":
                         help="define the time interval.", default="1h")
 
     parser.add_argument("-r", "--refresh-rate", type=int,
-                        help="define the refresh rate in ms.", default=3600)
+                        help="define the refresh rate in m.", default=1)
+
+    parser.add_argument("-d", "--simulation-days", type=int,
+                        help="define the simulation days", default=30)
 
     args = parser.parse_args()
     config = vars(args)
-    print(config)
+    return config
+
+
+def main():
+
+    config = arg_handler()
+    simulator = Simulator(config)
+
+    fig, ax = create_plot(simulator.get_historical_data())
+
+    f = zoom_factory(ax[0], base_scale=0.5)
+
+    mpf.show()
+
+
+if __name__ == "__main__":
+
+    main()
