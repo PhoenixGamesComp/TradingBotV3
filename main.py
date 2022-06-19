@@ -14,7 +14,7 @@ def arg_handler():
         "mode", help="Select a mode between 'test' and 'live'.")
 
     parser.add_argument("-s", "--symbol", type=str,
-                        help="define the symbol.", default="BTCUSDT")
+                        help="define the symbol.", default="BTCBUSD")
 
     parser.add_argument("-p", "--past-days", type=int,
                         help="define the past days.", default=365)
@@ -37,10 +37,7 @@ def main():
 
     config = arg_handler()
     simulator = Simulator(config)
-
-    fig, ax = create_plot(simulator.get_historical_data())
-
-    f = zoom_factory(ax[0], base_scale=0.5)
+    simulator.run()
 
     mpf.show()
 
