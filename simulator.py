@@ -5,6 +5,9 @@ import sys
 import mplfinance as mpf
 import matplotlib.animation as animation
 from chart import create_plot
+from indicators.dema import Dema
+from indicators.fbb import FBB
+from indicators.supertrend import Supertrend
 
 
 class Simulator:
@@ -14,12 +17,19 @@ class Simulator:
         self.config = config
         self.logger = Logger()
         self.prepare_simulator_dataset(config)
+
+        self.dema = Dema(self.historical_data)
+        self.fbb = FBB(self.historical_data)
+        self.supertrend = Supertrend(self.historical_data)
+
         self.curr = 0
         self.resample_period = config["time_interval"]
         self.resample_map = {'open': 'first',
                              'high': 'max',
                              'low': 'min',
                              'close': 'last'}
+
+        self.visible_data = 50
 
     def prepare_simulator_dataset(self, config, debug=True):
 
@@ -158,18 +168,75 @@ class Simulator:
         self.plot_data = self.plot_data.resample(
             self.resample_period).agg(self.resample_map).dropna()
 
-        self.plot_data = self.plot_data.tail(25)
+        self.plot_data = self.plot_data.tail(self.visible_data)
         self.axes[0].clear()
-        create_plot(self.plot_data, ax=self.axes[0])
+
+        # DEMA
+        dema_data = self.dema.next(self.plot_data.tail(1))
+        dema_plot = mpf.make_addplot(dema_data.tail(self.visible_data), width=0.75,
+                                     color="c", ax=self.axes[0])
+
+        # FBB
+        fbb_data = self.fbb.next(self.plot_data.tail(1))
+        fbb_up_plot = mpf.make_addplot(
+            fbb_data[0].tail(self.visible_data), width=0.75, color="r", ax=self.axes[0])
+        fbb_down_plot = mpf.make_addplot(
+            fbb_data[1].tail(self.visible_data), width=0.75, color="r", ax=self.axes[0])
+
+        # Supertrend
+        supertrend_data = self.supertrend.next(self.plot_data.tail(1))
+        supertrend_lower_plot = mpf.make_addplot(
+            supertrend_data[1].tail(self.visible_data), width=0.75, color="r", ax=self.axes[0])
+        supertrend_upper_plot = mpf.make_addplot(
+            supertrend_data[2].tail(self.visible_data), width=0.75, color="g", ax=self.axes[0])
+
+        create_plot(self.plot_data,
+                    ap=[
+                        dema_plot,
+                        fbb_up_plot,
+                        fbb_down_plot,
+                        supertrend_lower_plot,
+                        supertrend_upper_plot],
+                    ax=self.axes[0])
 
     def run(self):
 
         self.historical_data = self.historical_data.resample(
             self.resample_period).agg(self.resample_map).dropna()
 
-        self.plot_data = self.historical_data.tail(25)
+        self.plot_data = self.historical_data.tail(self.visible_data)
 
-        self.fig, self.axes = create_plot(self.plot_data)
+        # DEMA
+        dema_data = self.dema.prev()
+        dema_plot = mpf.make_addplot(
+            dema_data.tail(self.visible_data), width=0.75, color="c")
+
+        # FBB
+        fbb_data = self.fbb.prev()
+        fbb_up_plot = mpf.make_addplot(
+            fbb_data[0].tail(self.visible_data), width=0.75, color="r")
+        fbb_down_plot = mpf.make_addplot(
+            fbb_data[1].tail(self.visible_data), width=0.75, color="r")
+
+        # Supertrend
+        supertrend_data = self.supertrend.prev()
+
+        print(supertrend_data[1])
+        print(supertrend_data[2])
+        input("...")
+
+        supertrend_lower_plot = mpf.make_addplot(
+            supertrend_data[1].tail(self.visible_data), width=0.75, color="r")
+        supertrend_upper_plot = mpf.make_addplot(
+            supertrend_data[2].tail(self.visible_data), width=0.75, color="g")
+
+        self.fig, self.axes = create_plot(
+            self.plot_data, ap=[
+                dema_plot,
+                fbb_up_plot,
+                fbb_down_plot,
+                supertrend_lower_plot,
+                supertrend_upper_plot])
         self.ani = animation.FuncAnimation(
             self.fig, self.animate, interval=25)
         mpf.show()
